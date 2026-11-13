@@ -1,4 +1,4 @@
-name: CG Sentinel tests
+name: CMG Sentinel tests
 
 on:
   push:
