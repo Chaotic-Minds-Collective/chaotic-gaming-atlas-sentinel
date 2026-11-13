@@ -1,8 +1,8 @@
 {
-  "name": "@chaotic-gaming/atlas-sentinel",
+  "name": "@chaotic-minds-gaming/atlas-sentinel",
   "version": "0.1.0",
   "private": true,
-  "description": "Read-only event classification and alert foundation for Chaotic Gaming ATLAS.",
+  "description": "Read-only event classification and alert foundation for Chaotic Minds Gaming ATLAS (CMG).",
   "type": "module",
   "engines": {
     "node": ">=22"
