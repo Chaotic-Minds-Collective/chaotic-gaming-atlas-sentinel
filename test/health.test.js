@@ -69,6 +69,8 @@ test("rejects malformed samples, timestamps, counters and thresholds", () => {
   assert.throws(() => classifyServerHealth(sample({ state: "restarting" })), /state/);
   assert.throws(() => classifyServerHealth(sample({ playerCount: -1 })), /playerCount/);
   assert.throws(() => classifyServerHealth(sample({ sampledAt: "later" })), /sampledAt/);
+  assert.throws(() => classifyServerHealth(sample({ sampledAt: "2026-02-30T18:00:00Z" })), /sampledAt/);
+  assert.throws(() => classifyServerHealth(sample(), null), /options/);
   assert.throws(() => classifyServerHealth(sample({ heartbeatAt: "later" })), /heartbeatAt/);
   assert.throws(() => classifyServerHealth(sample(), {
     now: "2026-11-13T18:00:00.000Z",
