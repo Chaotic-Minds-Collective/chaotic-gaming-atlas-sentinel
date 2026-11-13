@@ -83,6 +83,39 @@ test("keeps identical source event IDs isolated across servers", () => {
   assert.notEqual(first.alertId, second.alertId);
 });
 
+test("escapes delimiters and escape sequences in every alert ID component", () => {
+  const components = ["clusterId", "gridId", "serverId", "eventId"];
+  const alertFor = (values) => evaluateSentinelEvent(makeEvent("ship.sunk", {
+    scope: { clusterId: values[0], gridId: values[1], serverId: values[2] },
+    eventId: values[3]
+  }))[0];
+
+  for (let boundary = 0; boundary < components.length - 1; boundary++) {
+    const first = ["A", "B", "C", "E"];
+    const second = [...first];
+    first[boundary + 1] = `D:${first[boundary + 1]}`;
+    second[boundary] += ":D";
+    assert.notEqual(alertFor(first).alertId, alertFor(second).alertId);
+  }
+
+  for (let index = 0; index < components.length; index++) {
+    const literal = ["A", "B", "C", "E"];
+    const escaped = [...literal];
+    literal[index] = "D:E";
+    escaped[index] = "D%3AE";
+    const alert = alertFor(literal);
+    assert.notEqual(alert.alertId, alertFor(escaped).alertId);
+    assert.equal(alert.alertId, alertFor(literal).alertId);
+    assert.equal(index === 3 ? alert.eventId : alert.scope[components[index]], "D:E");
+  }
+});
+
+test("rejects non-ISO timestamps and impossible calendar dates", () => {
+  for (const occurredAt of ["November 13, 2026 17:00:00Z", "2026-02-30T10:00:00Z"]) {
+    assert.throws(() => evaluateSentinelEvent(makeEvent("player.died", { occurredAt })), /ISO 8601/);
+  }
+});
+
 test("rejects malformed or unsupported event envelopes", () => {
   assert.throws(() => evaluateSentinelEvent(null), /event must be an object/);
   assert.throws(() => evaluateSentinelEvent(makeEvent("player.died", { schemaVersion: 2 })), /schemaVersion/);

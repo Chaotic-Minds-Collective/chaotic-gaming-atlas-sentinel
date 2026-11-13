@@ -135,7 +135,7 @@ export function evaluateSentinelEvent(event) {
       validated.scope.serverId,
       validated.eventId,
       rule.id
-    ].join(":"),
+    ].map((component) => component.replaceAll("%", "%25").replaceAll(":", "%3A")).join(":"),
     ruleId: rule.id,
     severity: rule.severity,
     summary: rule.summary,
