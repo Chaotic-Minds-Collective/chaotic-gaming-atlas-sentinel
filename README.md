@@ -2,7 +2,7 @@
 
 Security, operational visibility and administrative coordination for every ATLAS grid.
 
-This Chaotic Minds Gaming-specific module extends [Chaotic Gaming Core](https://github.com/Chaotic-Minds-Collective/chaotic-gaming-core) and the [ATLAS integration adapter](https://github.com/Chaotic-Minds-Collective/chaotic-gaming-atlas); it does not replace either foundation.
+This Chaotic Minds Gaming (CMG) module extends [Chaotic Minds Gaming Core](https://github.com/Chaotic-Minds-Collective/chaotic-minds-gaming-atlas-core) and the [ATLAS integration adapter](https://github.com/Chaotic-Minds-Collective/chaotic-minds-gaming-atlas); it does not replace either foundation.
 
 ## Feature scope
 
@@ -24,7 +24,14 @@ The first server-independent milestone is implemented in `src/index.js`:
 - Rejects malformed or unsupported event envelopes.
 - Does not copy event payloads into alerts or perform network, RCON, notification or game-state actions.
 
-This is an event-classification foundation using the shared mock event vocabulary. It is not live telemetry, a native ATLAS callback integration, or a production alert delivery service.
+The second server-independent milestone adds `src/health.js`:
+
+- Classifies normalized schema-v1 samples as healthy, degraded, offline or unknown.
+- Uses configurable heartbeat warning/offline thresholds (90 seconds and 5 minutes by default).
+- Carries cluster, grid and server scope into stable health sample IDs.
+- Strictly validates timestamps, state and player counts; returns immutable metadata only.
+
+Both modules are pure classifiers over supplied data. They are not live telemetry, a native ATLAS callback integration, or a production alert delivery service.
 
 ## Development
 

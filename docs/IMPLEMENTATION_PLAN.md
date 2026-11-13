@@ -43,6 +43,15 @@ Core owns identities, scopes and durable events. Sentinel owns RCON policies, al
 
 This milestone consumes the shared mock event contract. It does not establish that native ATLAS callbacks exist or that live events are being received.
 
+### Implemented server-independent health classification
+
+- Classifies normalized schema-v1 samples as healthy, degraded, offline or unknown.
+- Defaults to a 90-second warning threshold and a 5-minute offline threshold; both are configurable.
+- Validates scoped identifiers, strict timezone-qualified timestamps, state and non-negative player counts.
+- Emits immutable metadata only; no polling, persistence, RCON, restart or notification behavior is implemented.
+
+This is a pure classifier only. A verified adapter and isolated runtime test are still required before describing it as live server monitoring.
+
 ## Technical gates and risks
 
 - No arbitrary shell passthrough or command injection.
