@@ -20,6 +20,14 @@ function sample(overrides = {}) {
   };
 }
 
+function atHeartbeatAge(ageMs, options = {}) {
+  const heartbeatAt = Date.parse("2026-11-13T17:59:30.000Z");
+  return classifyServerHealth(sample(), {
+    now: new Date(heartbeatAt + ageMs).toISOString(),
+    ...options
+  });
+}
+
 test("classifies a recent running heartbeat as healthy", () => {
   const result = classifyServerHealth(sample());
   assert.equal(result.status, "healthy");
@@ -27,15 +35,24 @@ test("classifies a recent running heartbeat as healthy", () => {
   assert.equal(result.playerCount, 12);
 });
 
-test("classifies delayed and expired heartbeats using configurable thresholds", () => {
-  const delayed = classifyServerHealth(sample(), {
-    now: "2026-11-13T18:02:00.000Z"
+test("uses valid custom thresholds to change classification", () => {
+  const defaultResult = atHeartbeatAge(90_000);
+  const overriddenResult = atHeartbeatAge(90_000, {
+    thresholds: { warningAfterMs: 120_000, offlineAfterMs: 240_000 }
   });
-  const offline = classifyServerHealth(sample(), {
-    now: "2026-11-13T18:06:00.000Z"
-  });
-  assert.equal(delayed.status, "degraded");
-  assert.equal(offline.status, "offline");
+
+  assert.equal(defaultResult.status, "degraded");
+  assert.equal(overriddenResult.status, "healthy");
+});
+
+test("classifies just below and exactly at the warning threshold", () => {
+  assert.equal(atHeartbeatAge(89_999).status, "healthy");
+  assert.equal(atHeartbeatAge(90_000).status, "degraded");
+});
+
+test("classifies just below and exactly at the offline threshold", () => {
+  assert.equal(atHeartbeatAge(299_999).status, "degraded");
+  assert.equal(atHeartbeatAge(300_000).status, "offline");
 });
 
 test("reports stopped servers as offline and unknown or missing heartbeats as unknown", () => {
