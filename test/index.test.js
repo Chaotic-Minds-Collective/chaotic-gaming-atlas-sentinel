@@ -89,6 +89,9 @@ test("rejects malformed or unsupported event envelopes", () => {
   assert.throws(() => evaluateSentinelEvent(makeEvent("unknown.event")), /unsupported eventType/);
   assert.throws(() => evaluateSentinelEvent(makeEvent("player.died", { eventId: " " })), /eventId/);
   assert.throws(() => evaluateSentinelEvent(makeEvent("player.died", { occurredAt: "yesterday" })), /ISO 8601/);
+  assert.throws(() => evaluateSentinelEvent(makeEvent("player.died", { occurredAt: "2026-02-31T00:00:00Z" })), /ISO 8601/);
+  assert.throws(() => evaluateSentinelEvent(makeEvent("player.died", { occurredAt: "2025-02-29T00:00:00Z" })), /ISO 8601/);
+  assert.throws(() => evaluateSentinelEvent(makeEvent("player.died", { occurredAt: "2024-02-29T00:00:00Z" })), /ISO 8601/);
   assert.throws(() => evaluateSentinelEvent(makeEvent("player.died", { scope: { ...scope, serverId: "" } })), /scope.serverId/);
   assert.throws(() => evaluateSentinelEvent(makeEvent("player.died", { payload: [] })), /payload/);
 });
