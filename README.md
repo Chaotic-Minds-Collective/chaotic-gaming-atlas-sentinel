@@ -1,8 +1,8 @@
-# CG Sentinel
+# CMG Sentinel
 
 Security, operational visibility and administrative coordination for every ATLAS grid.
 
-This Chaotic Gaming-specific module extends [Chaotic Gaming Core](https://github.com/Chaotic-Minds-Collective/chaotic-gaming-core) and the [ATLAS integration adapter](https://github.com/Chaotic-Minds-Collective/chaotic-gaming-atlas); it does not replace either foundation.
+This Chaotic Minds Gaming (CMG) module extends [Chaotic Minds Gaming Core](https://github.com/Chaotic-Minds-Collective/chaotic-minds-gaming-atlas-core) and the [ATLAS integration adapter](https://github.com/Chaotic-Minds-Collective/chaotic-minds-gaming-atlas); it does not replace either foundation.
 
 ## Feature scope
 
