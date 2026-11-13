@@ -19,7 +19,7 @@ Security, operational visibility and administrative coordination for every ATLAS
 - Core server registry, scoped RBAC, audit/outbox and plugin health
 - ATLAS adapter: verified RCON/health/events
 - Connect for alerts; Tribes for context
-- Review existing chaotic-atlas-admin backend and backup tools
+- Review existing [CMG ATLAS Admin Plugin](https://github.com/Chaotic-Minds-Collective/cmg-atlas-admin-plugin) backend and backup tools
 
 ## Data ownership
 
