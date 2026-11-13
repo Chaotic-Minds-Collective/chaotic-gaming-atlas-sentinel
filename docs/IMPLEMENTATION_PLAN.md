@@ -1,4 +1,4 @@
-# CG Sentinel — Implementation Plan
+# CMG Sentinel — Implementation Plan
 
 ## Purpose
 
