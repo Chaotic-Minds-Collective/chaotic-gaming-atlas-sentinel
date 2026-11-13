@@ -2,6 +2,7 @@ const DEFAULT_THRESHOLDS = Object.freeze({
   warningAfterMs: 90_000,
   offlineAfterMs: 300_000
 });
+const ISO_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(\.\d+)?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
 
 function nonEmpty(value, field) {
   if (typeof value !== "string" || value.trim() === "") {
@@ -11,13 +12,35 @@ function nonEmpty(value, field) {
 }
 
 function timestamp(value, field) {
-  if (typeof value !== "string" || !Number.isFinite(Date.parse(value))) {
-    throw new TypeError(`${field} must be a valid ISO date-time`);
+  if (typeof value !== "string") {
+    throw new TypeError(`${field} must be a valid ISO date-time with timezone`);
   }
-  return Date.parse(value);
+  const match = ISO_DATE_TIME.exec(value);
+  if (!match) {
+    throw new TypeError(`${field} must be a valid ISO date-time with timezone`);
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const daysInMonth = [
+    31,
+    year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28,
+    31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+  ];
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1]) {
+    throw new TypeError(`${field} must be a valid ISO date-time with timezone`);
+  }
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) {
+    throw new TypeError(`${field} must be a valid ISO date-time with timezone`);
+  }
+  return parsed;
 }
 
-function validateThresholds(thresholds) {
+function validateThresholds(thresholds = {}) {
+  if (!thresholds || typeof thresholds !== "object" || Array.isArray(thresholds)) {
+    throw new TypeError("thresholds must be an object");
+  }
   const value = { ...DEFAULT_THRESHOLDS, ...thresholds };
   if (!Number.isSafeInteger(value.warningAfterMs) || value.warningAfterMs < 1) {
     throw new TypeError("warningAfterMs must be a positive safe integer");
@@ -41,6 +64,9 @@ function escapeIdPart(value) {
 export function classifyServerHealth(sample, options = {}) {
   if (!sample || typeof sample !== "object" || Array.isArray(sample)) {
     throw new TypeError("sample must be an object");
+  }
+  if (!options || typeof options !== "object" || Array.isArray(options)) {
+    throw new TypeError("options must be an object");
   }
   if (sample.schemaVersion !== 1) {
     throw new TypeError("schemaVersion must be 1");
