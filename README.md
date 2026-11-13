@@ -2,7 +2,7 @@
 
 Security, operational visibility and administrative coordination for every ATLAS grid.
 
-This Chaotic Minds Gaming (CMG) module extends [Chaotic Minds Gaming Core](https://github.com/Chaotic-Minds-Collective/chaotic-minds-gaming-atlas-core) and the [ATLAS integration adapter](https://github.com/Chaotic-Minds-Collective/chaotic-minds-gaming-atlas); it does not replace either foundation.
+This Chaotic Minds Gaming (CMG) module extends [Chaotic Minds Gaming Core](https://github.com/Chaotic-Minds-Collective/cmg-atlas-core-plugin) and the [ATLAS integration adapter](https://github.com/Chaotic-Minds-Collective/cmg-atlas-plugin); it does not replace either foundation.
 
 ## Feature scope
 
@@ -49,7 +49,7 @@ GitHub Actions runs the same checks for relevant pushes and pull requests.
 - Core server registry, scoped RBAC, audit/outbox and plugin health
 - ATLAS adapter: verified RCON/health/events
 - Connect for alerts; Tribes for context
-- Review existing chaotic-atlas-admin backend and backup tools
+- Review existing [CMG ATLAS Admin Plugin](https://github.com/Chaotic-Minds-Collective/cmg-atlas-admin-plugin) backend and backup tools
 
 Core remains authoritative for shared identity, authorization and platform records. ATLAS-native calls pass through the shared adapter. This module owns its domain state and must not connect directly to PostgreSQL.
 
