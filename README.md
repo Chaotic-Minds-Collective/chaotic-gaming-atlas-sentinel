@@ -38,7 +38,7 @@ The Core contract milestone adds `src/core-heartbeat-adapter.js`:
 - Requires explicit cluster, grid and server scope; Core's current public listing does not return cluster ID or provider grid ID.
 - Uses a fake Core response in tests only; it performs no HTTP requests.
 
-These are pure classifiers and contract adapters. They are not live telemetry, a native ATLAS callback integration, or a production alert delivery service.
+The read-only Core poller adds `src/core-poller.js`:\n\n- Performs one HTTPS GET to Core's public `/servers` endpoint with a bounded timeout, no-store caching and redirects disabled.\n- Requires an explicit caller-provided cluster/grid/server scope resolver; it does not infer stable IDs from display names.\n- Filters for ATLAS records, validates the response envelope and record count, and maps records through the tested heartbeat adapter.\n- Makes no retries, writes, authenticated requests, RCON calls or notifications.\n\nThese are read-only classifiers and contract adapters. The poller is a callable one-shot operation, not a scheduled monitor or production alert delivery service. A deployment still needs an approved Core origin, explicit scope mapping, secure runtime configuration and isolated connectivity validation.
 
 ## Development
 

@@ -8,7 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "check": "node --check src/index.js && node --check src/health.js && node --check src/core-heartbeat-adapter.js && node --check test/index.test.js && node --check test/health.test.js && node --check test/core-heartbeat-adapter.test.js",
+    "check": "node --check src/index.js && node --check src/health.js && node --check src/core-heartbeat-adapter.js && node --check src/core-poller.js && node --check test/index.test.js && node --check test/health.test.js && node --check test/core-heartbeat-adapter.test.js && node --check test/core-poller.test.js",
     "test": "node --test"
   }
 }
