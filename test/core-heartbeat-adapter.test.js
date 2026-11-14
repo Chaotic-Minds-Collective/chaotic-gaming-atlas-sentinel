@@ -59,7 +59,7 @@ test("does not misread Core's stale-heartbeat projection as a fresh stop", () =>
   assert.equal(classifyServerHealth(sample, { now }).status, "offline");
 });
 
-test("keeps a missing heartbeat unknown", () => {
+test("matches Core's strict five-minute stale projection boundary", () => {\n  const atBoundary = makeSample(coreServer({\n    online: false,\n    lastHeartbeat: "2026-11-14T11:55:00.000Z"\n  }));\n  assert.equal(atBoundary.state, "stopped");\n\n  const afterBoundary = makeSample(coreServer({\n    online: false,\n    lastHeartbeat: "2026-11-14T11:54:59.999Z"\n  }));\n  assert.equal(afterBoundary.state, "running");\n});\n\ntest("keeps a missing heartbeat unknown", () => {
   const result = classify(coreServer({
     online: false,
     playerCount: null,
