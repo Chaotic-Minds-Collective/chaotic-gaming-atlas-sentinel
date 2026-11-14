@@ -1,5 +1,5 @@
-const DEFAULT_OFFLINE_AFTER_MS = 300_000;
-const ISO_DATE_TIME = /^\\d{4}-\\d{2}-\\d{2}T(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$/;
+const CORE_STALE_HEARTBEAT_AFTER_MS = 300_000;
+const ISO_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(\.\d+)?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
 
 function requireNonEmpty(value, field) {
   if (typeof value !== "string" || value.trim() === "") {
@@ -9,20 +9,41 @@ function requireNonEmpty(value, field) {
 }
 
 function parseTimestamp(value, field) {
-  if (typeof value !== "string" || !ISO_DATE_TIME.test(value) || !Number.isFinite(Date.parse(value))) {
+  if (typeof value !== "string") {
     throw new TypeError(`${field} must be a valid ISO date-time with timezone`);
   }
-  return Date.parse(value);
+  const match = ISO_DATE_TIME.exec(value);
+  if (!match) {
+    throw new TypeError(`${field} must be a valid ISO date-time with timezone`);
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const daysInMonth = [
+    31,
+    year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28,
+    31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+  ];
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1]) {
+    throw new TypeError(`${field} must be a valid ISO date-time with timezone`);
+  }
+
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) {
+    throw new TypeError(`${field} must be a valid ISO date-time with timezone`);
+  }
+  return parsed;
 }
 
 /**
  * Map one Core GET /servers record into Sentinel's normalized health contract.
  *
- * Core deliberately reports online=false and playerCount=null when its latest
- * heartbeat is older than five minutes. Preserve that distinction: a stale
- * heartbeat is classified by age, not misrepresented as a fresh stopped signal.
- * Scope is supplied explicitly because Core's public server listing currently
- * returns clusterName, not clusterId or the provider gridId.
+ * Core reports online=false and playerCount=null when its latest heartbeat is
+ * older than five minutes. A stale record is therefore not the same as a fresh
+ * stopped signal: retain its heartbeat timestamp and let Sentinel classify age.
+ * Scope is explicit because Core's current listing returns clusterName, not
+ * clusterId or the provider gridId.
  */
 export function createCoreServerHealthSample(server, scope, options = {}) {
   if (!server || typeof server !== "object" || Array.isArray(server)) {
@@ -58,11 +79,6 @@ export function createCoreServerHealthSample(server, scope, options = {}) {
 
   const now = options.now;
   const evaluatedAt = parseTimestamp(now, "now");
-  const offlineAfterMs = options.offlineAfterMs ?? DEFAULT_OFFLINE_AFTER_MS;
-  if (!Number.isSafeInteger(offlineAfterMs) || offlineAfterMs < 1) {
-    throw new TypeError("offlineAfterMs must be a positive safe integer");
-  }
-
   const heartbeatAt = server.lastHeartbeat === null || server.lastHeartbeat === undefined
     ? null
     : server.lastHeartbeat;
@@ -75,9 +91,11 @@ export function createCoreServerHealthSample(server, scope, options = {}) {
   }
 
   const heartbeatAgeMs = heartbeatTime === null ? null : evaluatedAt - heartbeatTime;
+  const staleProjection = heartbeatAgeMs !== null &&
+    heartbeatAgeMs >= CORE_STALE_HEARTBEAT_AFTER_MS;
   const state = heartbeatTime === null
     ? "unknown"
-    : server.online || heartbeatAgeMs >= offlineAfterMs
+    : server.online || staleProjection
       ? "running"
       : "stopped";
 
@@ -92,5 +110,5 @@ export function createCoreServerHealthSample(server, scope, options = {}) {
 }
 
 export const SENTINEL_CORE_HEARTBEAT_DEFAULTS = Object.freeze({
-  offlineAfterMs: DEFAULT_OFFLINE_AFTER_MS
+  staleProjectionAfterMs: CORE_STALE_HEARTBEAT_AFTER_MS
 });
