@@ -21,9 +21,12 @@ function coreServer(overrides = {}) {
   };
 }
 
-function classify(server, options = {}) {
-  const sample = createCoreServerHealthSample(server, scope, { now, ...options });
-  return classifyServerHealth(sample, { now });
+function makeSample(server) {
+  return createCoreServerHealthSample(server, scope, { now });
+}
+
+function classify(server, thresholds) {
+  return classifyServerHealth(makeSample(server), { now, thresholds });
 }
 
 test("maps a fresh Core ATLAS heartbeat to a healthy Sentinel sample", () => {
@@ -41,16 +44,19 @@ test("preserves an unavailable player count instead of inventing zero", () => {
 });
 
 test("maps a fresh explicit offline heartbeat to offline", () => {
-  assert.equal(classify(coreServer({ online: false })).status, "offline");
+  const sample = makeSample(coreServer({ online: false }));
+  assert.equal(sample.state, "stopped");
+  assert.equal(classifyServerHealth(sample, { now }).status, "offline");
 });
 
-test("maps Core's stale-heartbeat online=false projection by heartbeat age", () => {
-  const stale = coreServer({
+test("does not misread Core's stale-heartbeat projection as a fresh stop", () => {
+  const sample = makeSample(coreServer({
     online: false,
     playerCount: null,
     lastHeartbeat: "2026-11-14T11:54:59.999Z"
-  });
-  assert.equal(classify(stale).status, "offline");
+  }));
+  assert.equal(sample.state, "running");
+  assert.equal(classifyServerHealth(sample, { now }).status, "offline");
 });
 
 test("keeps a missing heartbeat unknown", () => {
@@ -63,13 +69,12 @@ test("keeps a missing heartbeat unknown", () => {
   assert.equal(result.heartbeatAt, null);
 });
 
-test("honors an explicit offline threshold for stale-heartbeat projection", () => {
-  const stale = coreServer({
-    online: false,
-    lastHeartbeat: "2026-11-14T11:59:00.000Z"
-  });
-  assert.equal(classify(stale, { offlineAfterMs: 120_000 }).status, "offline");
-  assert.equal(classify(stale, { offlineAfterMs: 300_000 }).status, "offline");
+test("preserves nullable player counts at the health classifier boundary", () => {
+  const sample = makeSample(coreServer({ playerCount: null }));
+  assert.equal(classifyServerHealth(sample, {
+    now,
+    thresholds: { warningAfterMs: 120_000, offlineAfterMs: 240_000 }
+  }).playerCount, null);
 });
 
 test("rejects mismatched server scope and unsupported game records", () => {
@@ -86,6 +91,9 @@ test("rejects malformed Core records and timestamps", () => {
   assert.throws(() => createCoreServerHealthSample(coreServer({ online: "true" }), scope, { now }), /online/);
   assert.throws(() => createCoreServerHealthSample(coreServer({ playerCount: -1 }), scope, { now }), /playerCount/);
   assert.throws(() => createCoreServerHealthSample(coreServer({ lastHeartbeat: "yesterday" }), scope, { now }), /lastHeartbeat/);
+  assert.throws(() => createCoreServerHealthSample(coreServer({
+    lastHeartbeat: "2026-02-30T11:59:30.000Z"
+  }), scope, { now }), /lastHeartbeat/);
   assert.throws(() => createCoreServerHealthSample(coreServer(), scope, { now: "later" }), /now/);
   assert.throws(() => createCoreServerHealthSample(coreServer({
     lastHeartbeat: "2026-11-14T12:00:01.000Z"
@@ -96,13 +104,13 @@ test("does not mutate Core response or caller scope", () => {
   const server = coreServer();
   const originalServer = structuredClone(server);
   const originalScope = structuredClone(scope);
-  createCoreServerHealthSample(server, scope, { now });
+  makeSample(server);
   assert.deepEqual(server, originalServer);
   assert.deepEqual(scope, originalScope);
 });
 
 test("returns frozen sample and scope", () => {
-  const sample = createCoreServerHealthSample(coreServer(), scope, { now });
+  const sample = makeSample(coreServer());
   assert.ok(Object.isFrozen(sample));
   assert.ok(Object.isFrozen(sample.scope));
 });
