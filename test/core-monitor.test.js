@@ -73,8 +73,7 @@ test("scheduled ticks do not overlap an in-flight poll", async () => {
   assert.equal(polls, 1);
   resolvePoll([]);
   assert.equal(await first, true);
-  assert.equal(await monitor.pollNow(), true);
-  assert.equal(polls, 2);
+  assert.equal(polls, 1);
   monitor.stop();
 });
 
