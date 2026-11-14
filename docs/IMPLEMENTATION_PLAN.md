@@ -58,9 +58,9 @@ This milestone consumes the shared mock event contract. It does not establish th
 - Requires explicit cluster/grid/server scope because the current Core listing omits cluster ID and provider grid ID.
 - Uses deterministic fake response fixtures and has no network client or production endpoint access.
 
-This is contract-level integration only. A read-only Core API client, scoped authentication and isolated connectivity test remain separate gates. Native ATLAS callbacks, live server compatibility and player-count telemetry remain unverified.
+This is contract-level integration only. A one-shot HTTPS client for the public Core `GET /servers` endpoint is now implemented with bounded timeout, strict origin validation, no redirects, no retries and explicit scope mapping. It has mocked-fetch tests only; no live endpoint was contacted. Native ATLAS callbacks, live server compatibility and player-count telemetry remain unverified.
 
-## Technical gates and risks
+### Implemented read-only Core poller\n\n- Added a one-shot HTTPS GET client for Core's public `/servers` listing.\n- Enforces HTTPS origin-only configuration, a bounded timeout, JSON response validation, a 1,000-record ceiling, no-store caching and disabled redirects.\n- Requires an explicit scope resolver because the public response does not expose stable cluster/grid IDs.\n- Filters non-ATLAS records and maps ATLAS rows through the existing tested heartbeat adapter.\n- Does not retry, persist, authenticate, notify, invoke RCON or modify game state.\n- Added mocked-fetch contract tests; no live Core endpoint was contacted.\n\n## Technical gates and risks
 
 - No arbitrary shell passthrough or command injection.
 - Auto-restart disabled by default and not implemented.
