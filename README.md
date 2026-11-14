@@ -29,9 +29,16 @@ The second server-independent milestone adds `src/health.js`:
 - Classifies normalized schema-v1 samples as healthy, degraded, offline or unknown.
 - Uses configurable heartbeat warning/offline thresholds (90 seconds and 5 minutes by default).
 - Carries cluster, grid and server scope into stable health sample IDs.
-- Strictly validates timestamps, state and player counts; returns immutable metadata only.
+- Preserves a null player count as unavailable rather than inventing zero.
 
-Both modules are pure classifiers over supplied data. They are not live telemetry, a native ATLAS callback integration, or a production alert delivery service.
+The Core contract milestone adds `src/core-heartbeat-adapter.js`:
+
+- Maps the Core `GET /servers` response shape into Sentinel's normalized health sample.
+- Distinguishes a fresh `online: false` observation from Core's five-minute stale-heartbeat projection.
+- Requires explicit cluster, grid and server scope; Core's current public listing does not return cluster ID or provider grid ID.
+- Uses a fake Core response in tests only; it performs no HTTP requests.
+
+These are pure classifiers and contract adapters. They are not live telemetry, a native ATLAS callback integration, or a production alert delivery service.
 
 ## Development
 
