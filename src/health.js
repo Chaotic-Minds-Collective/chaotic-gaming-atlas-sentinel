@@ -84,8 +84,9 @@ export function classifyServerHealth(sample, options = {}) {
   if (!["running", "stopped", "unknown"].includes(sample.state)) {
     throw new TypeError("state must be running, stopped, or unknown");
   }
-  if (!Number.isSafeInteger(sample.playerCount) || sample.playerCount < 0) {
-    throw new TypeError("playerCount must be a non-negative safe integer");
+  if (sample.playerCount !== null &&
+      (!Number.isSafeInteger(sample.playerCount) || sample.playerCount < 0)) {
+    throw new TypeError("playerCount must be null or a non-negative safe integer");
   }
 
   let heartbeatAt = null;

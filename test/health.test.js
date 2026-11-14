@@ -35,6 +35,12 @@ test("classifies a recent running heartbeat as healthy", () => {
   assert.equal(result.playerCount, 12);
 });
 
+test("preserves an unavailable player count as null", () => {
+  const result = classifyServerHealth(sample({ playerCount: null }));
+  assert.equal(result.playerCount, null);
+  assert.equal(result.status, "healthy");
+});
+
 test("uses valid custom thresholds to change classification", () => {
   const defaultResult = atHeartbeatAge(90_000);
   const overriddenResult = atHeartbeatAge(90_000, {
