@@ -48,16 +48,25 @@ This milestone consumes the shared mock event contract. It does not establish th
 - Classifies normalized schema-v1 samples as healthy, degraded, offline or unknown.
 - Defaults to a 90-second warning threshold and a 5-minute offline threshold; both are configurable.
 - Validates scoped identifiers, strict timezone-qualified timestamps, state and non-negative player counts.
+- Preserves an unavailable player count as null.
 - Emits immutable metadata only; no polling, persistence, RCON, restart or notification behavior is implemented.
 
-This is a pure classifier only. A verified adapter and isolated runtime test are still required before describing it as live server monitoring.
+### Implemented Core heartbeat contract adapter
+
+- Maps the Core `GET /servers` response fields (`id`, `gameKey`, `online`, `playerCount`, `lastHeartbeat`) into Sentinel's schema-v1 health sample.
+- Preserves Core's five-minute stale-heartbeat projection: a stale `online: false` row remains age-classifiable instead of being treated as a fresh stopped signal.
+- Requires explicit cluster/grid/server scope because the current Core listing omits cluster ID and provider grid ID.
+- Uses deterministic fake response fixtures and has no network client or production endpoint access.
+
+This is contract-level integration only. A read-only Core API client, scoped authentication and isolated connectivity test remain separate gates. Native ATLAS callbacks, live server compatibility and player-count telemetry remain unverified.
 
 ## Technical gates and risks
 
 - No arbitrary shell passthrough or command injection.
 - Auto-restart disabled by default and not implemented.
 - ATLAS death/ship/structure callbacks are not confirmed in Core.
-- Exact server build, loader, SDK, callbacks, threading model and operating system require isolated reproducible validation.
+- Exact server build, plugin loader, SDK, callbacks, threading model and operating system require isolated reproducible validation.
+- Core's current public server listing does not provide all required health scope identifiers; do not infer cluster IDs from names or fabricate grid IDs.
 
 ## Shared engineering requirements
 
