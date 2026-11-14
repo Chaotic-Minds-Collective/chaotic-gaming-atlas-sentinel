@@ -101,7 +101,7 @@ export function createCoreServerHealthSample(server, scope, options = {}) {
 
   return Object.freeze({
     schemaVersion: 1,
-    sampledAt: heartbeatAt ?? now,
+    sampledAt: now,
     heartbeatAt,
     state,
     playerCount: server.playerCount,

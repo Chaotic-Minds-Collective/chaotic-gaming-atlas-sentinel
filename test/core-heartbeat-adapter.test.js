@@ -37,6 +37,21 @@ test("maps a fresh Core ATLAS heartbeat to a healthy Sentinel sample", () => {
   assert.deepEqual(result.scope, scope);
 });
 
+test("classifies adapter samples at the supplied time without classifier options", () => {
+  for (const [lastHeartbeat, online, status, heartbeatAgeMs] of [
+    ["2026-11-14T11:59:30.000Z", true, "healthy", 30_000],
+    ["2026-11-14T11:58:00.000Z", true, "degraded", 120_000],
+    ["2026-11-14T11:54:59.999Z", false, "offline", 300_001]
+  ]) {
+    const sample = makeSample(coreServer({ lastHeartbeat, online }));
+    const result = classifyServerHealth(sample);
+    assert.equal(result.status, status);
+    assert.equal(result.heartbeatAgeMs, heartbeatAgeMs);
+    assert.equal(sample.sampledAt, now);
+    assert.equal(sample.heartbeatAt, lastHeartbeat);
+  }
+});
+
 test("preserves an unavailable player count instead of inventing zero", () => {
   const result = classify(coreServer({ playerCount: null }));
   assert.equal(result.status, "healthy");
