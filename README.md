@@ -66,3 +66,16 @@ Core remains authoritative for shared identity, authorization and platform recor
 - Auto-restart is disabled and is not implemented.
 - No production server, live Core endpoint, RCON endpoint or third-party Workshop content is accessed.
 - Native ATLAS compatibility and feature-specific callbacks remain unverified; unsupported capabilities must remain disabled.
+
+
+### Scheduled read-only Core health monitor
+
+The next Sentinel milestone adds `src/core-monitor.js`:
+
+- Starts with one immediate poll, then uses a configurable interval (60 seconds by default).
+- Prevents overlapping poll requests; concurrent manual and scheduled ticks share the in-flight operation.
+- Delivers samples only while running and suppresses late results after shutdown.
+- Reports polling and sample-handler failures through an injected error callback without allowing a failing reporter to stop the scheduler.
+- Uses injected polling and timer functions so lifecycle behavior can be tested without contacting Core or waiting on real timers.
+
+This is a library lifecycle coordinator, not an installed background service. The caller must explicitly start it and supply the existing read-only poller plus sample handling. It does not persist health, send alerts, invoke RCON, restart servers, or access a live endpoint.
