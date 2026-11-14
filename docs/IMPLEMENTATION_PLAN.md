@@ -79,3 +79,15 @@ This is contract-level integration only. A one-shot HTTPS client for the public 
 - Add unit tests, fake-adapter contract tests and isolated runtime compatibility tests.
 - Gate unsupported features behind explicit capabilities; fail closed for privileged actions.
 - Do not deploy to production or change live server configuration during repository planning.
+
+
+### Implemented read-only Core health monitor lifecycle
+
+- Added an explicitly started coordinator around the one-shot Core poller.
+- Performs one immediate poll and then schedules configurable polling (60 seconds by default; bounded from 1 second to 1 hour).
+- Prevents overlapping requests and shares the in-flight poll between timer ticks and manual poll requests.
+- Delivers samples only while running; results completing after stop are discarded.
+- Reports poll and sample-handler errors through an optional callback; a failing error reporter cannot break the polling lifecycle.
+- Uses injected timer and poll functions for deterministic tests; no real Core endpoint or ATLAS server was contacted.
+
+This remains an opt-in library component. It is not automatically started, does not persist samples or send alerts, and does not perform RCON or recovery actions.
