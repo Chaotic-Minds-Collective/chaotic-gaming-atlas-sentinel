@@ -92,7 +92,7 @@ export function createCoreServerHealthSample(server, scope, options = {}) {
 
   const heartbeatAgeMs = heartbeatTime === null ? null : evaluatedAt - heartbeatTime;
   const staleProjection = heartbeatAgeMs !== null &&
-    heartbeatAgeMs >= CORE_STALE_HEARTBEAT_AFTER_MS;
+    heartbeatAgeMs > CORE_STALE_HEARTBEAT_AFTER_MS;
   const state = heartbeatTime === null
     ? "unknown"
     : server.online || staleProjection
